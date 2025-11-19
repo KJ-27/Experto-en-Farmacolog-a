@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>¿Quién Quiere ser Experto en Farmacología?</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #1e3a8a; /* Azul oscuro */
+            --secondary: #3b82f6; /* Azul brillante */
+            --accent: #fbbf24; /* Amarillo/dorado */
+            --dark: #0f172a; /* Azul muy oscuro, casi negro */
+            --light: #e2e8f0; /* Gris claro */
+            --correct: #22c55e; /* Verde */
+            --incorrect: #ef4444; /* Rojo */
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--dark) 0%, #1e293b 100%);
+            color: var(--light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+        }
+
+        .game-container {
+            width: 90%;
+            max-width: 800px;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 20px;
+            padding: 2rem;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .game-header {
+            margin-bottom: 2rem;
+        }
+
+        .game-header h1 {
+            font-size: 2.5rem;
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(251, 191, 36, 0.5);
+            margin-bottom: 0.5rem;
+        }
+
+        .game-header p {
+            font-size: 1.2rem;
+            color: var(--light);
+        }
+
+        #question-container {
+            margin-bottom: 2rem;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #question-text {
+            font-size: 1.5rem;
+            font-weight: 500;
+        }
+
+        .answers-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 2rem;
+        }
+
+        .answer-btn {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            padding: 1rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .answer-btn:hover:not(:disabled) {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+        }
+
+        .answer-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        .lifelines-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 2rem;
+        }
+
+        .lifeline-btn {
+            background: var(--accent);
+            color: var(--dark);
+            border: none;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .lifeline-btn:hover:not(:disabled) {
+            transform: scale(1.1);
+        }
+
+        .lifeline-btn:disabled {
+            background: #4b5563;
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .money-tree {
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 10px;
+            padding: 1rem;
+            list-style: none;
+        }
+
+        .money-tree li {
+            padding: 0.8rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.3s ease;
+        }
+        .money-tree li:last-child {
+            border-bottom: none;
+        }
+
+        .money-tree li.active {
+            background: rgba(251, 191, 36, 0.2);
+            font-weight: bold;
+        }
+        
+        .money-tree li.safe-haven {
+            background: rgba(34, 197, 94, 0.2);
+        }
+
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.8);
+            animation: fadeIn 0.5s;
+        }
+
+        .modal-content {
+            background-color: var(--dark);
+            margin: 15% auto;
+            padding: 2rem;
+            border: 1px solid var(--accent);
+            border-radius: 15px;
+            width: 80%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(251, 191, 36, 0.3);
+        }
+
+        .modal-content h2 {
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+
+        .modal-content p {
+            margin-bottom: 1.5rem;
+            font-size: 1.1rem;
+        }
+
+        .play-again-btn {
+            background: var(--accent);
+            color: var(--dark);
+            border: none;
+            padding: 0.8rem 1.5rem;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s ease;
+        }
+
+        .play-again-btn:hover {
+            transform: scale(1.05);
+            background: #f59e0b;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* --- Media Queries for Responsiveness --- */
+        @media (max-width: 768px) {
+            .game-container {
+                padding: 1.5rem;
+            }
+            .game-header h1 {
+                font-size: 2rem;
+            }
+            #question-text {
+                font-size: 1.2rem;
+            }
+            .answers-grid {
+                grid-template-columns: 1fr;
+            }
+            .lifeline-btn {
+                width: 50px;
+                height: 50px;
+                font-size: 1.2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <header class="game-header">
+            <h1>¿Quién Quiere ser Experto en Farmacología?</h1>
+            <p>Demuestra tu conocimiento sobre Anestesiología y Antihipertensivos.</p>
+        </header>
+
+        <main>
+            <div id="question-container">
+                <p id="question-text">Presiona "Jugar" para comenzar</p>
+            </div>
+            
+            <div class="answers-grid" id="answers-grid">
+                <!-- Los botones de respuesta se generarán con JavaScript -->
+            </div>
+
+            <div class="lifelines-container">
+                <button class="lifeline-btn" id="fifty-fifty-btn" title="50:50">
+                    <i class="fas fa-divide"></i>
+                </button>
+                <button class="lifeline-btn" id="ask-audience-btn" title="Consulta al Público">
+                    <i class="fas fa-users"></i>
+                </button>
+                <button class="lifeline-btn" id="phone-friend-btn" title="Llamada a un Amigo">
+                    <i class="fas fa-phone"></i>
+                </button>
+            </div>
+        </main>
+
+        <aside>
+            <ul class="money-tree" id="money-tree">
+                <!-- El árbol de dinero se generará con JavaScript -->
+            </ul>
+        </aside>
+    </div>
+
+    <!-- Modales -->
+    <div id="start-modal" class="modal">
+        <div class="modal-content">
+            <h2>¡Pon a Prueba tu Conocimiento!</h2>
+            <p>¿Estás listo para demostrar todo lo que sabes sobre farmacología?</p>
+            <button class="play-again-btn" onclick="startGame()">Jugar</button>
+        </div>
+    </div>
+
+    <div id="win-modal" class="modal">
+        <div class="modal-content">
+            <h2>¡Felicidades, Has Ganado!</h2>
+            <p>¡Tu conocimiento es impresionante! Eres un verdadero experto.</p>
+            <button class="play-again-btn" onclick="resetGame()">Jugar de Nuevo</button>
+        </div>
+    </div>
+
+    <div id="lose-modal" class="modal">
+        <div class="modal-content">
+            <h2>¡Fin del Juego!</h2>
+            <p id="lose-message">La respuesta correcta era otra.</p>
+            <p id="final-prize">Te vas con un premio de consuelo.</p>
+            <button class="play-again-btn" onclick="resetGame()">Intentarlo de Nuevo</button>
+        </div>
+    </div>
+
+    <script>
+        // --- DATOS DEL JUEGO ---
+        const prizeLevels = [
+            100, 200, 300, 500, 1000, 
+            2000, 4000, 8000, 16000, 32000,
+            64000, 125000, 250000, 500000, 1000000
+        ];
+        const safeHavens = [4, 9]; // Índices de los niveles seguros (0-based)
+
+        // NUEVAS PREGUNTAS SOBRE ANESTESIOLOGÍA E ANTIHIPERTENSIVOS
+        const questions = [
+            { question: "¿Cuál es el principal objetivo de la anestesia general?", answers: ["Producir amnesia", "Abolir el dolor", "Relajar los músculos", "Todas las anteriores"], correctAnswer: 3 },
+            { question: "¿Qué fármaco es un ejemplo de un anestésico intravenoso de acción ultracorta?", answers: ["Midazolam", "Ketamina", "Tiopental", "Halotano"], correctAnswer: 2 },
+            { question: "¿Cuál de los siguientes es un efecto secundario común de los IECA?", answers: ["Tos seca", "Hipertensión", "Bradicardia extrema", "Hiperpotasemia"], correctAnswer: 0 },
+            { question: "¿En qué nivel de sedación el paciente responde a órdenes verbales?", answers: ["Sedación Mínima", "Sedación Moderada", "Sedación Profunda", "Anestesia General"], correctAnswer: 0 },
+            { question: "¿Qué tipo de anestesia se administra en el espacio epidural sin perforar la duramadre?", answers: ["Intratecal", "Peridural", "Troncular", "Local"], correctAnswer: 1 },
+            { question: "¿Cuál es el mecanismo de acción principal de los betabloqueantes?", answers: ["Vasodilatación directa", "Disminuir el gasto cardíaco", "Inhibir la reabsorción de sodio", "Bloquear los canales de calcio"], correctAnswer: 1 },
+            { question: "¿Cuál de estos fármacos es un diurético ahorrador de potasio?", answers: ["Furosemida", "Hidroclorotiazida", "Espironolactona", "Manitol"], correctAnswer: 2 },
+            { question: "El Halotano es un anestésico:", answers: ["Intravenoso", "Inhalatorio", "Local", "Ninguna de las anteriores"], correctAnswer: 1 },
+            { question: "¿Qué efecto adverso es característico del Nitroprusiato Sódico?", answers: ["Cianosis", "Hipotensión severa", "Fiebre", "Convulsiones"], correctAnswer: 1 },
+            { question: "¿Qué fármaco antihipertensivo está contraindicado durante el embarazo?", answers: ["Atenolol", "Amlodipino", "Enalapril", "Metildopa"], correctAnswer: 2 },
+            { question: "La anestesia disociativa es producida principalmente por:", answers: ["Propofol", "Ketamina", "Midazolam", "Lidocaína"], correctAnswer: 1 },
+            { question: "¿Cuál es la principal característica de los anestésicos locales amidocaínas?", answers: ["Menor duración", "Mayor riesgo de alergia", "Menor toxicidad", "Son vasoconstrictores"], correctAnswer: 2 },
+            { question: "Los bloqueantes de los canales de calcio dihidropiridínicos (ej. Amlodipino) actúan principalmente como:", answers: ["Antiarrítmicos", "Vasodilatadores arteriales", "Inotrópicos positivos", "Broncodilatadores"], correctAnswer: 1 },
+            { question: "¿Cuál es el fármaco de elección para la sedación en procedimientos breves por su rápida metabolización?", answers: ["Tiopental", "Diazepam", "Propofol", "Ketamina"], correctAnswer: 2 },
+            { question: "¿Qué define la Hipertensión Arterial Grado 1 según la clasificación?", answers: ["130-139 / 85-89", "140-159 / 90-99", "160-179 / 100-109", "≥180 / ≥110"], correctAnswer: 1 }
+        ];
+
+        // --- ESTADO DEL JUEGO ---
+        let currentQuestionIndex = 0;
+        let prize = 0;
+        let lifelinesUsed = {
+            fiftyFifty: false,
+            askAudience: false,
+            phoneFriend: false
+        };
+
+        // --- ELEMENTOS DEL DOM ---
+        const questionTextEl = document.getElementById('question-text');
+        const answersGridEl = document.getElementById('answers-grid');
+        const moneyTreeEl = document.getElementById('money-tree');
+        const startModalEl = document.getElementById('start-modal');
+        const winModalEl = document.getElementById('win-modal');
+        const loseModalEl = document.getElementById('lose-modal');
+        const loseMessageEl = document.getElementById('lose-message');
+        const finalPrizeEl = document.getElementById('final-prize');
+        const fiftyFiftyBtn = document.getElementById('fifty-fifty-btn');
+        const askAudienceBtn = document.getElementById('ask-audience-btn');
+        const phoneFriendBtn = document.getElementById('phone-friend-btn');
+
+        // --- FUNCIONES DEL JUEGO ---
+        
+        // Función para mezclar el array de preguntas (algoritmo Fisher-Yates)
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]]; // Intercambia elementos
+            }
+        }
+
+        function startGame() {
+            currentQuestionIndex = 0;
+            prize = 0;
+            lifelinesUsed = { fiftyFifty: false, askAudience: false, phoneFriend: false };
+            closeModal(startModalEl);
+            closeModal(winModalEl);
+            closeModal(loseModalEl);
+            resetLifelines();
+            
+            // ¡NUEVO! Mezclar las preguntas antes de empezar
+            shuffleArray(questions);
+            
+            loadMoneyTree();
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            if (currentQuestionIndex >= questions.length) {
+                showWinScreen();
+                return;
+            }
+
+            const currentQuestion = questions[currentQuestionIndex];
+            questionTextEl.textContent = `Pregunta ${currentQuestionIndex + 1}: ${currentQuestion.question}`;
+            answersGridEl.innerHTML = ''; // Limpiar respuestas anteriores
+
+            currentQuestion.answers.forEach((answer, index) => {
+                const button = document.createElement('button');
+                button.classList.add('answer-btn');
+                button.textContent = answer;
+                button.onclick = () => selectAnswer(index);
+                answersGridEl.appendChild(button);
+            });
+            
+            updateMoneyTree();
+        }
+
+        function selectAnswer(answerIndex) {
+            const correctAnswer = questions[currentQuestionIndex].correctAnswer;
+            const buttons = answersGridEl.querySelectorAll('.answer-btn');
+            
+            // Deshabilitar todos los botones
+            buttons.forEach(btn => btn.disabled = true);
+
+            if (answerIndex === correctAnswer) {
+                buttons[answerIndex].style.background = 'var(--correct)';
+                prize = prizeLevels[currentQuestionIndex];
+                currentQuestionIndex++;
+                setTimeout(loadQuestion, 1500); // Cargar siguiente pregunta después de 1.5s
+            } else {
+                buttons[answerIndex].style.background = 'var(--incorrect)';
+                buttons[correctAnswer].style.background = 'var(--correct)';
+                setTimeout(showLoseScreen, 2000); // Mostrar pantalla de derrota
+            }
+        }
+        
+        function useFiftyFifty() {
+            if (lifelinesUsed.fiftyFifty) return;
+            lifelinesUsed.fiftyFifty = true;
+            fiftyFiftyBtn.disabled = true;
+
+            const correctAnswer = questions[currentQuestionIndex].correctAnswer;
+            const buttons = Array.from(answersGridEl.querySelectorAll('.answer-btn'));
+            const incorrectAnswers = buttons
+                .map((btn, index) => index)
+                .filter(index => index !== correctAnswer);
+
+            // Eliminar 2 respuestas incorrectas al azar
+            for (let i = 0; i < 2; i++) {
+                const randomIndex = Math.floor(Math.random() * incorrectAnswers.length);
+                const indexToRemove = incorrectAnswers.splice(randomIndex, 1)[0];
+                buttons[indexToRemove].style.visibility = 'hidden';
+            }
+        }
+
+        function useAskAudience() {
+            if (lifelinesUsed.askAudience) return;
+            lifelinesUsed.askAudience = true;
+            askAudienceBtn.disabled = true;
+            
+            const correctAnswer = questions[currentQuestionIndex].correctAnswer;
+            const buttons = Array.from(answersGridEl.querySelectorAll('.answer-btn'));
+            let percentages = [10, 15, 20, 25]; // Porcentajes base para respuestas incorrectas
+            const correctPercentage = 100 - percentages.reduce((a, b) => a + b, 0);
+
+            // Asignar porcentajes
+            buttons.forEach((btn, index) => {
+                let percentage;
+                if (index === correctAnswer) {
+                    percentage = correctPercentage;
+                } else {
+                    percentage = percentages.pop();
+                }
+                btn.textContent += ` (${percentage}%)`;
+            });
+        }
+
+        function usePhoneFriend() {
+            if (lifelinesUsed.phoneFriend) return;
+            lifelinesUsed.phoneFriend = true;
+            phoneFriendBtn.disabled = true;
+            
+            const correctAnswer = questions[currentQuestionIndex].correctAnswer;
+            const answers = questions[currentQuestionIndex].answers;
+            const isCorrect = Math.random() > 0.2; // 80% de probabilidad de que el amigo acierte
+
+            let friendSays = "Uf, qué difícil... creo que la respuesta correcta es la ";
+            if (isCorrect) {
+                friendSays += answers[correctAnswer];
+            } else {
+                let wrongAnswer;
+                do {
+                    wrongAnswer = Math.floor(Math.random() * answers.length);
+                } while (wrongAnswer === correctAnswer);
+                friendSays += answers[wrongAnswer];
+            }
+            alert(`Tu amigo dice: "${friendSays}"`);
+        }
+
+        function showWinScreen() {
+            openModal(winModalEl);
+        }
+
+        function showLoseScreen() {
+            const lastSafeHavenPrize = safeHavens.reduce((lastPrize, level) => {
+                return currentQuestionIndex > level ? prizeLevels[level] : lastPrize;
+            }, 0);
+            
+            const correctAnswerText = questions[currentQuestionIndex].answers[questions[currentQuestionIndex].correctAnswer];
+            loseMessageEl.textContent = `La respuesta correcta era: ${correctAnswerText}.`;
+            finalPrizeEl.textContent = `Te vas con un premio de ${lastSafeHavenPrize.toLocaleString()}€.`;
+            openModal(loseModalEl);
+        }
+
+        function resetGame() {
+            startGame();
+        }
+
+        function loadMoneyTree() {
+            moneyTreeEl.innerHTML = '';
+            for (let i = prizeLevels.length - 1; i >= 0; i--) {
+                const li = document.createElement('li');
+                li.textContent = `${prizeLevels[i].toLocaleString()}€`;
+                if (safeHavens.includes(i)) {
+                    li.classList.add('safe-haven');
+                }
+                moneyTreeEl.appendChild(li);
+            }
+        }
+
+        function updateMoneyTree() {
+            const listItems = moneyTreeEl.querySelectorAll('li');
+            listItems.forEach(item => item.classList.remove('active'));
+            listItems[listItems.length - 1 - currentQuestionIndex].classList.add('active');
+        }
+
+        function resetLifelines() {
+            fiftyFiftyBtn.disabled = false;
+            askAudienceBtn.disabled = false;
+            phoneFriendBtn.disabled = false;
+        }
+
+        function openModal(modal) {
+            modal.style.display = 'block';
+        }
+
+        function closeModal(modal) {
+            modal.style.display = 'none';
+        }
+        
+        // --- INICIALIZACIÓN ---
+        document.addEventListener('DOMContentLoaded', () => {
+            openModal(startModalEl);
+            loadMoneyTree();
+        });
+    </script>
+</body>
+</html>
